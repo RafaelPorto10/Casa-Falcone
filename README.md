@@ -204,6 +204,6 @@ casa_falcone/
 
 ## 👤 Autor
 
-Desenvolvido por **[seu nome aqui]**.
+Desenvolvido por **[Rafael Porto Barbosa]**.
 
-[LinkedIn](#) · [GitHub](#)
+[www.linkedin.com/in/rafaelportodesenvolvedor](#) · [https://github.com/RafaelPorto10/](#)
