@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configurações — Admin Casa Falcone</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="admin-layout">
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <h2>🍕 Casa Falcone</h2>
+      <small>Painel Administrativo</small>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin_painel') }}"><span>📋</span> Gerenciar Pratos</a>
+      <a href="{{ url_for('admin_novo_prato') }}"><span>➕</span> Adicionar Prato</a>
+      <a href="{{ url_for('admin_config') }}" class="ativo"><span>⚙️</span> Configurações</a>
+      <a href="{{ url_for('gerar_qrcode') }}" target="_blank"><span>📲</span> QR Code</a>
+      <a href="{{ url_for('cardapio') }}" target="_blank"><span>👁️</span> Ver Cardápio</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('admin_logout') }}"><span>🚪</span> Sair</a>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>⚙️ Configurações</h1>
+    </div>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+    <div class="flash-container">
+      {% for cat, msg in msgs %}
+      <div class="flash flash-{{ 'success' if cat == 'success' else 'error' }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="admin-conteudo">
+      <div class="form-card">
+        <form method="POST">
+
+          <!-- Info da cafeteria -->
+          <div class="form-titulo">📍 Informações da Cafeteria</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Horário de Funcionamento</label>
+              <input type="text" name="horario" value="{{ config.horario or '' }}"
+                     placeholder="Ex: Seg a Sex: 8h–18h | Sáb: 8h–14h">
+            </div>
+            <div class="form-group">
+              <label>Telefone / WhatsApp</label>
+              <input type="text" name="telefone" value="{{ config.telefone or '' }}"
+                     placeholder="(31) 9xxxx-xxxx">
+            </div>
+            <div class="form-group">
+              <label>Instagram</label>
+              <input type="text" name="instagram" value="{{ config.instagram or '' }}"
+                     placeholder="@casafalcone">
+            </div>
+          </div>
+
+          <!-- Trocar senha -->
+          <div class="form-titulo" style="margin-top:28px">🔐 Alterar Senha do Admin</div>
+          <div class="form-grid">
+            <div class="form-group full">
+              <label>Nova Senha (deixe em branco para não alterar)</label>
+              <input type="password" name="nova_senha" 
+                     placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+              <span class="form-hint">⚠️ Anote a nova senha em lugar seguro antes de salvar!</span>
+            </div>
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-verde">💾 Salvar Configurações</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Dica QR Code -->
+      <div class="form-card" style="margin-top:20px;border-left:4px solid var(--verde)">
+        <div class="form-titulo">📲 QR Code para as Mesas</div>
+        <p style="font-size:0.9rem;color:#666;margin-bottom:16px">
+          Gere o QR Code para imprimir e colocar nas mesas. 
+          Os clientes vão escanear e abrir o cardápio automaticamente.
+        </p>
+        <a href="{{ url_for('gerar_qrcode') }}" target="_blank" class="btn btn-verde">
+          📲 Gerar e Imprimir QR Code
+        </a>
+      </div>
+
+    </div>
+  </main>
+</div>
+</body>
+</html>

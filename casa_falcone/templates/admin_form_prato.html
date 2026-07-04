@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% if acao == 'novo' %}Novo Prato{% else %}Editar Prato{% endif %} — Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-logo">
+      <h2>🍕 Casa Falcone</h2>
+      <small>Painel Administrativo</small>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin_painel') }}"><span>📋</span> Gerenciar Pratos</a>
+      <a href="{{ url_for('admin_novo_prato') }}" class="{% if acao == 'novo' %}ativo{% endif %}">
+        <span>➕</span> Adicionar Prato
+      </a>
+      <a href="{{ url_for('admin_config') }}"><span>⚙️</span> Configurações</a>
+      <a href="{{ url_for('gerar_qrcode') }}" target="_blank"><span>📲</span> QR Code</a>
+      <a href="{{ url_for('cardapio') }}" target="_blank"><span>👁️</span> Ver Cardápio</a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('admin_logout') }}"><span>🚪</span> Sair</a>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>{% if acao == 'novo' %}➕ Novo Prato{% else %}✏️ Editar Prato{% endif %}</h1>
+      <a href="{{ url_for('admin_painel') }}" class="btn btn-cinza">← Voltar</a>
+    </div>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+    <div class="flash-container">
+      {% for cat, msg in msgs %}
+      <div class="flash flash-{{ 'success' if cat == 'success' else 'error' }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="admin-conteudo">
+      <div class="form-card">
+        <div class="form-titulo">
+          {% if acao == 'novo' %}Cadastrar novo prato{% else %}Editar: {{ prato.nome }}{% endif %}
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+          <div class="form-grid">
+
+            <!-- Nome -->
+            <div class="form-group full">
+              <label>Nome do Prato *</label>
+              <input type="text" name="nome" required 
+                     value="{% if prato %}{{ prato.nome }}{% endif %}"
+                     placeholder="Ex: Panino Focaccia">
+            </div>
+
+            <!-- Categoria -->
+            <div class="form-group">
+              <label>Categoria *</label>
+              <select name="categoria" required>
+                <option value="comida" {% if prato and prato.categoria == 'comida' %}selected{% endif %}>🍽️ Comida</option>
+                <option value="bebida" {% if prato and prato.categoria == 'bebida' %}selected{% endif %}>☕ Bebida</option>
+                <option value="sobremesa" {% if prato and prato.categoria == 'sobremesa' %}selected{% endif %}>🍮 Sobremesa</option>
+              </select>
+            </div>
+
+            <!-- Preço -->
+            <div class="form-group">
+              <label>Preço (R$) *</label>
+              <input type="text" name="preco" required 
+                     value="{% if prato %}{{ '%.2f'|format(prato.preco) }}{% endif %}"
+                     placeholder="Ex: 38.00">
+            </div>
+
+            <!-- Descrição -->
+            <div class="form-group full">
+              <label>Descrição</label>
+              <textarea name="descricao" rows="3" 
+                        placeholder="Descreva o prato de forma apetitosa...">{% if prato %}{{ prato.descricao }}{% endif %}</textarea>
+            </div>
+
+            <!-- Ingredientes -->
+            <div class="form-group full">
+              <label>Ingredientes</label>
+              <textarea name="ingredientes" rows="2" 
+                        placeholder="Ex: Pão focaccia, muçarela, pesto de limão, rúcula, pancetta">{% if prato %}{{ prato.ingredientes }}{% endif %}</textarea>
+              <span class="form-hint">Separe os ingredientes por vírgula</span>
+            </div>
+
+            <!-- Foto -->
+            <div class="form-group full">
+              <label>Foto do Prato</label>
+              <input type="file" name="foto" accept="image/*" id="input-foto" onchange="previewFoto(this)">
+              <span class="form-hint">JPG, PNG ou WebP — máximo 16MB</span>
+              {% if prato and prato.foto and prato.foto not in ['default_food.jpg','default_drink.jpg','default_dessert.jpg'] %}
+                <img src="{{ url_for('static', filename='images/' + prato.foto) }}" 
+                     id="foto-preview" class="foto-preview" alt="Foto atual">
+                <small style="color:#888;margin-top:4px">Foto atual — envie uma nova para substituir</small>
+              {% else %}
+                <img id="foto-preview" class="foto-preview" style="display:none" alt="Preview">
+              {% endif %}
+            </div>
+
+            <!-- Disponível -->
+            <div class="form-group">
+              <label>Disponibilidade</label>
+              <div class="form-checkbox">
+                <input type="checkbox" name="disponivel" id="disponivel"
+                       {% if not prato or prato.disponivel %}checked{% endif %}>
+                <label for="disponivel">✅ Disponível no cardápio</label>
+              </div>
+            </div>
+
+            <!-- Destaque -->
+            <div class="form-group">
+              <label>Destaque</label>
+              <div class="form-checkbox">
+                <input type="checkbox" name="destaque" id="destaque"
+                       {% if prato and prato.destaque %}checked{% endif %}>
+                <label for="destaque">⭐ Marcar como destaque da casa</label>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="form-acoes">
+            <button type="submit" class="btn btn-verde">
+              {% if acao == 'novo' %}➕ Adicionar Prato{% else %}💾 Salvar Alterações{% endif %}
+            </button>
+            <a href="{{ url_for('admin_painel') }}" class="btn btn-cinza">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+function previewFoto(input) {
+  const preview = document.getElementById('foto-preview');
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+</body>
+</html>

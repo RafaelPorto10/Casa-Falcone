@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casa Falcone — Cardápio</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#1a6b3c">
+</head>
+<body>
+
+<!-- CABEÇALHO -->
+<header class="header-publico">
+  <div class="header-top">
+    <div class="logo-area">
+      <div class="logo-icone">🍕</div>
+      <div class="logo-texto">
+        <h1>Casa Falcone</h1>
+        <small>Cucina Italiana Artesanal</small>
+      </div>
+    </div>
+    <div class="header-acoes">
+      <button class="btn-tema" onclick="alternarTema()" title="Alternar tema">
+        <span id="icone-tema">🌙</span>
+      </button>
+      <a href="{{ url_for('admin_login') }}" class="btn-admin">
+        🔐 Admin
+      </a>
+    </div>
+  </div>
+
+  <!-- Busca -->
+  <div class="header-busca">
+    <form method="GET" action="{{ url_for('cardapio') }}" class="busca-wrap">
+      <input type="hidden" name="categoria" value="{{ categoria }}">
+      <input type="hidden" name="ordem" value="{{ ordem }}">
+      <input type="text" name="busca" placeholder="Buscar prato..." 
+             value="{{ busca }}" autocomplete="off" id="campo-busca">
+      <button type="submit">🔍</button>
+    </form>
+  </div>
+</header>
+
+<!-- INFO BAR -->
+{% if config.horario %}
+<div class="info-bar">
+  <span>🕐 {{ config.horario }}</span>
+  {% if config.instagram %}<span>📸 {{ config.instagram }}</span>{% endif %}
+  {% if config.telefone %}<span>📞 {{ config.telefone }}</span>{% endif %}
+</div>
+{% endif %}
+
+<!-- ABAS -->
+<nav>
+  <div class="abas-container">
+    <a href="{{ url_for('cardapio', categoria='comida', busca=busca, ordem=ordem) }}" 
+       class="aba {% if categoria == 'comida' %}ativa{% endif %}">
+      <span class="aba-icone">🍽️</span> Comidas
+    </a>
+    <a href="{{ url_for('cardapio', categoria='bebida', busca=busca, ordem=ordem) }}" 
+       class="aba {% if categoria == 'bebida' %}ativa{% endif %}">
+      <span class="aba-icone">☕</span> Bebidas
+    </a>
+    <a href="{{ url_for('cardapio', categoria='sobremesa', busca=busca, ordem=ordem) }}" 
+       class="aba {% if categoria == 'sobremesa' %}ativa{% endif %}">
+      <span class="aba-icone">🍮</span> Sobremesas
+    </a>
+  </div>
+</nav>
+
+<!-- CONTROLES -->
+<div class="controles-bar">
+  <span class="titulo-cat">
+    {% if categoria == 'comida' %}🍽️ Comidas
+    {% elif categoria == 'bebida' %}☕ Bebidas
+    {% else %}🍮 Sobremesas{% endif %}
+    {% if busca %}<small style="font-size:0.85rem;color:#888"> — "{{ busca }}"</small>{% endif %}
+  </span>
+  <div style="display:flex;gap:8px">
+    <a href="{{ url_for('cardapio', categoria=categoria, busca=busca, ordem='az') }}" 
+       class="btn-ordem {% if ordem == 'az' %}ativo{% endif %}">
+      🔤 A→Z
+    </a>
+    <a href="{{ url_for('cardapio', categoria=categoria, busca=busca, ordem='destaque') }}" 
+       class="btn-ordem {% if ordem == 'destaque' %}ativo{% endif %}">
+      ⭐ Destaques
+    </a>
+    {% if busca %}
+    <a href="{{ url_for('cardapio', categoria=categoria) }}" class="btn-ordem">✕ Limpar</a>
+    {% endif %}
+  </div>
+</div>
+
+<!-- DESTAQUES (só se não houver busca e ordenação não for A-Z) -->
+{% set destaques = pratos | selectattr('destaque', 'equalto', 1) | selectattr('disponivel', 'equalto', 1) | list %}
+{% if destaques and not busca and ordem != 'az' %}
+<div class="secao-destaque">
+  <h2>⭐ Destaques da Casa</h2>
+  <div class="destaques-grid">
+    {% for p in destaques %}
+    <div class="card-prato destaque-card">
+      <div class="fita-destaque">⭐ Destaque</div>
+      {% if p.foto and p.foto != 'default_food.jpg' and p.foto != 'default_drink.jpg' and p.foto != 'default_dessert.jpg' %}
+        <img src="{{ url_for('static', filename='images/' + p.foto) }}" alt="{{ p.nome }}" class="card-foto">
+      {% else %}
+        <div class="card-foto-placeholder">
+          {% if p.categoria == 'bebida' %}☕{% elif p.categoria == 'sobremesa' %}🍮{% else %}🍽️{% endif %}
+        </div>
+      {% endif %}
+      <div class="card-corpo">
+        <div class="card-nome">{{ p.nome }}</div>
+        {% if p.descricao %}<div class="card-descricao">{{ p.descricao }}</div>{% endif %}
+        {% if p.ingredientes %}<div class="card-ingredientes">🌿 {{ p.ingredientes }}</div>{% endif %}
+        <div class="card-rodape">
+          <span class="card-preco">R$ {{ "%.2f"|format(p.preco) }}</span>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+<div class="divisor-italiano">Todos os pratos</div>
+{% endif %}
+
+<!-- GRID DE PRATOS -->
+{% if pratos %}
+<div class="pratos-grid">
+  {% for p in pratos %}
+  {% if not (p.destaque and not busca and ordem != 'az') %}
+  <div class="card-prato {% if not p.disponivel %}indisponivel{% endif %}">
+    {% if p.destaque and p.disponivel %}
+    <div class="fita-destaque">⭐ Destaque</div>
+    {% endif %}
+    {% if p.foto and p.foto not in ['default_food.jpg','default_drink.jpg','default_dessert.jpg'] %}
+      <img src="{{ url_for('static', filename='images/' + p.foto) }}" alt="{{ p.nome }}" class="card-foto">
+    {% else %}
+      <div class="card-foto-placeholder">
+        {% if p.categoria == 'bebida' %}☕{% elif p.categoria == 'sobremesa' %}🍮{% else %}🍽️{% endif %}
+      </div>
+    {% endif %}
+    <div class="card-corpo">
+      <div class="card-nome">{{ p.nome }}</div>
+      {% if p.descricao %}<div class="card-descricao">{{ p.descricao }}</div>{% endif %}
+      {% if p.ingredientes %}<div class="card-ingredientes">🌿 {{ p.ingredientes }}</div>{% endif %}
+      <div class="card-rodape">
+        <span class="card-preco">
+          {% if p.disponivel %}R$ {{ "%.2f"|format(p.preco) }}{% else %}—{% endif %}
+        </span>
+        {% if not p.disponivel %}
+        <span class="badge badge-indisponivel">Indisponível</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  {% endfor %}
+</div>
+{% else %}
+<div class="sem-resultados">
+  <div class="icone">🔍</div>
+  <p><strong>Nenhum prato encontrado</strong></p>
+  <p style="margin-top:8px;font-size:0.88rem">
+    {% if busca %}Tente outro termo de busca.{% else %}Nenhum prato cadastrado nesta categoria.{% endif %}
+  </p>
+</div>
+{% endif %}
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p>🍕 <strong>Casa Falcone</strong> — Cucina Italiana Artesanal</p>
+  <p style="margin-top:6px;opacity:0.7">Feito com ❤️ e muito azeite</p>
+</footer>
+
+<script>
+  // Tema escuro/claro
+  const html = document.documentElement;
+  const icone = document.getElementById('icone-tema');
+  const temaSalvo = localStorage.getItem('tema') || 'claro';
+  aplicarTema(temaSalvo);
+
+  function alternarTema() {
+    const atual = html.getAttribute('data-tema');
+    const novo = atual === 'claro' ? 'escuro' : 'claro';
+    aplicarTema(novo);
+    localStorage.setItem('tema', novo);
+  }
+  function aplicarTema(tema) {
+    html.setAttribute('data-tema', tema);
+    icone.textContent = tema === 'escuro' ? '☀️' : '🌙';
+  }
+</script>
+</body>
+</html>

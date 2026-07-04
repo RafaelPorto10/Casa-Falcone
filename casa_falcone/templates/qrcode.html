@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code — Casa Falcone</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; }
+      .qr-card { box-shadow: none; border: 2px solid #333; }
+    }
+  </style>
+</head>
+<body>
+<div class="qr-page">
+  <div class="qr-card">
+    <h1>🍕 Casa Falcone</h1>
+    <p>Escaneie para ver nosso cardápio completo</p>
+
+    <img src="data:image/png;base64,{{ qr_b64 }}" alt="QR Code" style="width:220px;height:220px">
+
+    <div class="qr-url">{{ url }}</div>
+
+    <div style="margin-top:20px;display:flex;gap:12px;justify-content:center" class="no-print">
+      <button onclick="window.print()" class="btn btn-verde">🖨️ Imprimir</button>
+      <a href="{{ url_for('cardapio') }}" class="btn btn-cinza">← Voltar ao Cardápio</a>
+    </div>
+
+    <p style="margin-top:20px;font-size:0.75rem;color:#aaa" class="no-print">
+      Dica: Imprima em papel e plastifique para durar mais!
+    </p>
+  </div>
+</div>
+</body>
+</html>

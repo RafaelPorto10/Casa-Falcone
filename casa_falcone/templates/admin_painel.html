@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Casa Falcone</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="admin-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <h2>🍕 Casa Falcone</h2>
+      <small>Painel Administrativo</small>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{{ url_for('admin_painel') }}" class="ativo">
+        <span>📋</span> Gerenciar Pratos
+      </a>
+      <a href="{{ url_for('admin_novo_prato') }}">
+        <span>➕</span> Adicionar Prato
+      </a>
+      <a href="{{ url_for('admin_config') }}">
+        <span>⚙️</span> Configurações
+      </a>
+      <a href="{{ url_for('gerar_qrcode') }}" target="_blank">
+        <span>📲</span> QR Code
+      </a>
+      <a href="{{ url_for('cardapio') }}" target="_blank">
+        <span>👁️</span> Ver Cardápio
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ url_for('admin_logout') }}">
+        <span>🚪</span> Sair
+      </a>
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="admin-main">
+    <div class="admin-topbar">
+      <h1>📋 Gerenciar Cardápio</h1>
+      <a href="{{ url_for('admin_novo_prato') }}" class="btn btn-verde">
+        ➕ Novo Prato
+      </a>
+    </div>
+
+    <!-- FLASH -->
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+    <div class="flash-container">
+      {% for cat, msg in msgs %}
+      <div class="flash flash-{{ 'success' if cat == 'success' else 'error' }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="admin-conteudo">
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card stat-azul">
+          <div class="num">{{ stats.total }}</div>
+          <div class="label">Total de Pratos</div>
+        </div>
+        <div class="stat-card stat-verde">
+          <div class="num">{{ stats.disponiveis }}</div>
+          <div class="label">Disponíveis</div>
+        </div>
+        <div class="stat-card stat-vermelho">
+          <div class="num">{{ stats.indisponiveis }}</div>
+          <div class="label">Indisponíveis</div>
+        </div>
+        <div class="stat-card stat-amarelo">
+          <div class="num">{{ stats.destaques }}</div>
+          <div class="label">Em Destaque</div>
+        </div>
+      </div>
+
+      <!-- TABELA -->
+      <div class="tabela-container">
+        <div class="tabela-header">
+          <h2>Todos os Pratos</h2>
+          <form method="GET" class="tabela-filtros">
+            <input type="text" name="busca" placeholder="🔍 Buscar..." value="{{ busca }}">
+            <select name="categoria" onchange="this.form.submit()">
+              <option value="todos" {% if categoria == 'todos' %}selected{% endif %}>Todas categorias</option>
+              <option value="comida" {% if categoria == 'comida' %}selected{% endif %}>🍽️ Comidas</option>
+              <option value="bebida" {% if categoria == 'bebida' %}selected{% endif %}>☕ Bebidas</option>
+              <option value="sobremesa" {% if categoria == 'sobremesa' %}selected{% endif %}>🍮 Sobremesas</option>
+            </select>
+            <button type="submit" class="btn btn-cinza btn-sm">Filtrar</button>
+            {% if busca or categoria != 'todos' %}
+            <a href="{{ url_for('admin_painel') }}" class="btn btn-cinza btn-sm">✕ Limpar</a>
+            {% endif %}
+          </form>
+        </div>
+
+        <div style="overflow-x:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Foto</th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Status</th>
+                <th>Destaque</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for p in pratos %}
+              <tr>
+                <td>
+                  {% if p.foto and p.foto not in ['default_food.jpg','default_drink.jpg','default_dessert.jpg'] %}
+                    <img src="{{ url_for('static', filename='images/' + p.foto) }}" 
+                         alt="{{ p.nome }}" class="thumb-tabela">
+                  {% else %}
+                    <div class="thumb-placeholder">
+                      {% if p.categoria == 'bebida' %}☕{% elif p.categoria == 'sobremesa' %}🍮{% else %}🍽️{% endif %}
+                    </div>
+                  {% endif %}
+                </td>
+                <td>
+                  <strong>{{ p.nome }}</strong>
+                  {% if p.descricao %}
+                  <br><small style="color:#999">{{ p.descricao[:60] }}{% if p.descricao|length > 60 %}...{% endif %}</small>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="tag-categoria tag-{{ p.categoria }}">
+                    {% if p.categoria == 'comida' %}🍽️ Comida
+                    {% elif p.categoria == 'bebida' %}☕ Bebida
+                    {% else %}🍮 Sobremesa{% endif %}
+                  </span>
+                </td>
+                <td><strong>R$ {{ "%.2f"|format(p.preco) }}</strong></td>
+                <td>
+                  <span class="status-dot">
+                    <span class="dot {% if p.disponivel %}dot-verde{% else %}dot-vermelho{% endif %}"></span>
+                    {% if p.disponivel %}Disponível{% else %}Indisponível{% endif %}
+                  </span>
+                </td>
+                <td>
+                  {% if p.destaque %}⭐{% else %}<span style="color:#ccc">—</span>{% endif %}
+                </td>
+                <td>
+                  <div class="acoes-tabela">
+                    <!-- Editar -->
+                    <a href="{{ url_for('admin_editar_prato', id=p.id) }}" 
+                       class="btn btn-outline btn-xs" title="Editar">✏️</a>
+                    
+                    <!-- Disponibilidade -->
+                    <form method="POST" action="{{ url_for('toggle_disponivel', id=p.id) }}" style="display:inline">
+                      <button type="submit" class="btn btn-xs {% if p.disponivel %}btn-amarelo{% else %}btn-verde{% endif %}"
+                              title="{% if p.disponivel %}Marcar Indisponível{% else %}Marcar Disponível{% endif %}">
+                        {% if p.disponivel %}🔴{% else %}🟢{% endif %}
+                      </button>
+                    </form>
+
+                    <!-- Destaque -->
+                    <form method="POST" action="{{ url_for('toggle_destaque', id=p.id) }}" style="display:inline">
+                      <button type="submit" class="btn btn-xs {% if p.destaque %}btn-cinza{% else %}btn-amarelo{% endif %}"
+                              title="{% if p.destaque %}Remover Destaque{% else %}Destacar{% endif %}">
+                        ⭐
+                      </button>
+                    </form>
+
+                    <!-- Apagar -->
+                    <button onclick="confirmarApagar({{ p.id }}, '{{ p.nome }}')" 
+                            class="btn btn-vermelho btn-xs" title="Apagar permanentemente">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="7" style="text-align:center;padding:40px;color:#999">
+                  Nenhum prato encontrado.
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- fim admin-conteudo -->
+  </main>
+</div>
+
+<!-- MODAL CONFIRMAÇÃO APAGAR -->
+<div class="modal-overlay" id="modal-apagar">
+  <div class="modal-box">
+    <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+    <h3>Apagar permanentemente?</h3>
+    <p id="modal-texto">Este prato será removido e não poderá ser recuperado.</p>
+    <div class="modal-acoes">
+      <button onclick="fecharModal()" class="btn btn-cinza">Cancelar</button>
+      <form id="form-apagar" method="POST" style="display:inline">
+        <button type="submit" class="btn btn-vermelho">Sim, apagar</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function confirmarApagar(id, nome) {
+  document.getElementById('modal-texto').textContent = 
+    `"${nome}" será removido permanentemente. Tem certeza?`;
+  document.getElementById('form-apagar').action = `/admin/prato/${id}/apagar`;
+  document.getElementById('modal-apagar').classList.add('aberto');
+}
+function fecharModal() {
+  document.getElementById('modal-apagar').classList.remove('aberto');
+}
+document.getElementById('modal-apagar').addEventListener('click', function(e) {
+  if (e.target === this) fecharModal();
+});
+</script>
+</body>
+</html>

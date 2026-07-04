@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Casa Falcone — Painel Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="icone">🍕</div>
+      <h1>Casa Falcone</h1>
+      <p>Painel de Administração</p>
+    </div>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in msgs %}
+    <div class="flash flash-{{ 'success' if cat == 'success' else 'error' }}" style="margin-bottom:16px">
+      {{ msg }}
+    </div>
+    {% endfor %}
+    {% endwith %}
+
+    <form method="POST" class="login-form">
+      <input type="text" name="usuario" placeholder="Usuário" required autofocus>
+      <input type="password" name="senha" placeholder="Senha" required>
+      <button type="submit">Entrar no Painel →</button>
+    </form>
+
+    <div style="text-align:center;margin-top:20px">
+      <a href="{{ url_for('cardapio') }}" style="font-size:0.82rem;color:#888">
+        ← Ver cardápio público
+      </a>
+    </div>
+  </div>
+</div>
+</body>
+</html>
