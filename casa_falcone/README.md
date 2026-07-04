@@ -1,19 +1,57 @@
 # 🍕 Casa Falcone — Sistema de Cardápio Digital
 
-Sistema completo de cardápio digital com tema italiano para a Casa Falcone.
+![Python](https://img.shields.io/badge/Python-3.8+-3776AB?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-3.x-000000?logo=flask&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57?logo=sqlite&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+Sistema full-stack de cardápio digital desenvolvido em **Flask + SQLite**, com painel administrativo completo, autenticação segura e geração de QR Code — construído para um caso de uso real: substituir o cardápio físico de um restaurante por uma experiência digital responsiva e fácil de gerenciar.
+
+## 🔗 Acesso rápido
+
+- [Visão geral](#-visão-geral)
+- [Screenshots](#-screenshots)
+- [Tecnologias](#-tecnologias)
+- [Funcionalidades](#-funcionalidades)
+- [Como rodar](#-como-rodar-no-vs-code)
+- [Estrutura do projeto](#-estrutura-de-arquivos)
+- [Segurança](#-segurança)
+
+---
+
+## 🎯 Visão geral
+
+O **Casa Falcone** é um sistema de cardápio digital com dois lados:
+
+- **Cliente**: acessa o cardápio via navegador (ou QR Code na mesa), navega por categorias, busca pratos e vê os destaques da casa.
+- **Administrador (dono do restaurante)**: gerencia todo o cardápio — cadastro de pratos, fotos, preços, disponibilidade e destaques — sem precisar mexer em código ou banco de dados.
+
+O projeto foi pensado para ser **simples de rodar localmente**, mas com práticas de um sistema real em produção: autenticação com hash de senha, separação clara entre camadas (rotas, templates, banco), e persistência em banco relacional.
 
 ---
 
 ## 📸 Screenshots
 
-**Cardápio público**
+**Cardápio público — visão do cliente**
 ![Cardápio público](assets/home.png)
 
-**Painel administrativo**
+**Painel administrativo — gestão de pratos**
 ![Painel administrativo](assets/dashboard.png)
 
-**Código-fonte**
+**Backend — Flask + SQLite**
 ![Código-fonte](assets/codigo.png)
+
+---
+
+## 🛠️ Tecnologias
+
+| Camada | Tecnologia |
+|---|---|
+| Backend | Python 3, Flask |
+| Banco de dados | SQLite |
+| Autenticação | Werkzeug Security (hash pbkdf2:sha256) |
+| Frontend | HTML, CSS, Jinja2 (templates) |
+| Extras | Geração de QR Code (`qrcode`), upload de imagens |
 
 ---
 
@@ -144,3 +182,28 @@ casa_falcone/
 - Para deploy em servidor real, substituir SQLite por PostgreSQL e usar gunicorn
 - Para tornar acessível na internet, usar ngrok ou deploy em Heroku/Railway/Render
 - As senhas usam `werkzeug.security` (pbkdf2:sha256) — padrão seguro da indústria
+
+---
+
+## 🧠 Destaques técnicos
+
+- Autenticação com hash de senha (nunca texto puro) via `werkzeug.security`
+- Separação entre área pública e área administrativa, com `@login_required` protegendo rotas sensíveis
+- Modelagem de banco relacional com constraints (`CHECK` de categoria) e inicialização automática (`init_db()`)
+- Geração dinâmica de QR Code apontando para o IP local da rede
+- Upload de imagens com validação de extensão e limite de tamanho
+
+## 🚀 Possíveis evoluções
+
+- Migração de SQLite para PostgreSQL
+- Deploy em nuvem (Render/Railway) com domínio próprio
+- Testes automatizados (pytest)
+- Painel com métricas de pratos mais pedidos
+
+---
+
+## 👤 Autor
+
+Desenvolvido por **[seu nome aqui]**.
+
+[LinkedIn](#) · [GitHub](#)
